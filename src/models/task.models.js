@@ -1,6 +1,22 @@
 import mongoose , { Schema } from 'mongoose';
 import { AvailableTaskStatuses,TaskStatusEnum } from '../utils/constants.js';
 
+const attachmentSchema = new Schema({
+  url: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  mimeType: {
+    type: String,
+    required: true
+  },
+  size: {
+    type: Number,
+    required: true
+  }
+}, { _id: false }); // Prevent creation of _id for each attachment object
+
 const taskSchema = new Schema({
     title:{
         type:String,
@@ -28,7 +44,7 @@ const taskSchema = new Schema({
         ref:'User',
         required: true
     },
-    Status:{
+    status:{
         type:String,
         enum:AvailableTaskStatuses,
         default:TaskStatusEnum.TODO
@@ -36,11 +52,7 @@ const taskSchema = new Schema({
     },
     attachments:{
          type: [
-            {
-            url:String,
-            mimeType:String,
-            size:Number,
-         }
+           attachmentSchema
         ],
         default: []
     }
