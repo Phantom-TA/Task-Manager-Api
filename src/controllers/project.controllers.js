@@ -16,9 +16,9 @@ const getProjects = asyncHandler( async (req, res) => {
 
 const getProjectById = asyncHandler(async (req, res) => {
   // get project by id
-  const { id } = req.params;
+  const { projectId } = req.params;
   
-  const project =await Project.findById(id);
+  const project =await Project.findById(projectId);
   if (!project) {
     return res.status(404).json(
       new ApiResponse(404, { message: "Project not found" })
@@ -111,7 +111,7 @@ const deleteProject = asyncHandler(async (req, res) => {
  
   await ProjectMember.deleteMany({ project: projectId });
   await Project.deleteOne({ _id: projectId });
-  
+
   return res.status(200).json(
     new ApiResponse(200,{message: "Project deleted successfully"})
   )
@@ -132,8 +132,8 @@ const getProjectMembers = asyncHandler(async (req, res) => {
 
 const addMemberToProject = asyncHandler( async (req, res) => {
   // add member to project
-  
-  const { userId , projectId, role} =req.body;
+  const { projectId } = req.params
+  const { userId ,  role} =req.body;
    if (!userId || !projectId ) {
     return res.status(400).json(
       new ApiResponse(400, { message: "All fields are required" })
@@ -153,7 +153,7 @@ const addMemberToProject = asyncHandler( async (req, res) => {
 
 const deleteMember = asyncHandler(async (req, res) => {
   // delete member from project
-  const { userId , projectId } = req.body;
+  const { userId , projectId } = req.params;
     if (!userId || !projectId ) {
     return res.status(400).json(
       new ApiResponse(400, { message: "All fields are required" })
@@ -167,7 +167,8 @@ const deleteMember = asyncHandler(async (req, res) => {
 
 const updateMemberRole =asyncHandler( async (req, res) => {
   // update member role
-  const { userId ,projectId, role}=req.body;
+  const { userId , projectId } =req.params
+  const {  role}=req.body;
     if (!userId || !projectId ) {
     return res.status(400).json(
       new ApiResponse(400, { message: "All fields are required" })

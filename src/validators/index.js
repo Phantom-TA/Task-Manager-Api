@@ -25,7 +25,18 @@ const userLoginValidator =() =>{
            .notEmpty().withMessage("Password cannot be empty")
     ]
 }
-export{userRegistrationValidator  , userLoginValidator}
+
+const emailVerificationValidator = () => {
+  return [
+    param("token")
+      .notEmpty()
+      .withMessage("Verification token is required")
+      .isLength({ min: 32 })
+      .withMessage("Invalid verification token"),
+  ];
+};
+
+export{userRegistrationValidator  , userLoginValidator , emailVerificationValidator}
 
 /*
 import { body } from "express-validator";

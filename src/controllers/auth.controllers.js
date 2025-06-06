@@ -60,7 +60,7 @@ const registerUser = asyncHandler(async (req,res) => {
         to: user.email,
         subject: 'Email Verification',
         text: `Please verify your email by clicking on the following link:
-               ${process.env.BASE_URL}/api/v1/users/verify/${token}`
+               ${process.env.BASE_URL}/api/v1/users/verify-email/${token}`
         }
 
         await transporter.sendMail(mailOption)
@@ -227,8 +227,8 @@ const refreshAccessToken = asyncHandler(async (req,res) => {
     user.refreshToken = newRefreshToken;
     await user.save();
 
-    res.cookie('accessToken', newAccessToken, { httpOnly: true, secure: true, maxAge: 60 * 60 * 1000 }); // 1 hour
-    res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, maxAge: 60 * 60 * 24 * 7 * 1000 }); // 7 days
+    res.cookie('accessToken', newAccessToken, { ...cookieOptions, maxAge: 60 * 60 * 1000 }); // 1 hour
+    res.cookie('refreshToken', newRefreshToken, { ...cookieOptions, maxAge: 60 * 60 * 24 * 7 * 1000 }); // 7 days
     res.status(200).json(
         new ApiResponse(200,{message: 'Access token refreshed successfully'})
     );

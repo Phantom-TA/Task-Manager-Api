@@ -6,7 +6,9 @@ import SubTask  from '../models/subtask.models.js';
 
 const getTasks = asyncHandler(async (req, res) => {
   // get all tasks
-   const tasks =await Task.find().populate('assignedTo assignedBy project');
+   const { projectId } = req.params;
+
+   const tasks =await Task.find({project : projectId}).populate('assignedTo assignedBy project');
     res.status(200).json(
         new ApiResponse(200, { tasks , message: "All tasks fetched successfully" })
     );
@@ -16,9 +18,9 @@ const getTasks = asyncHandler(async (req, res) => {
 // get task by id
 const getTaskById = asyncHandler(async (req, res) => {
   // get task by id
- const { id } = req.params;
+ const { projectId , taskId } = req.params;
   
-  const task =await Task.findById(id).populate('assignedTo assignedBy project');
+  const task =await Task.findOne({project: projectId , _id: taskId}).populate('assignedTo assignedBy project');
   if (!task) {
     return res.status(404).json(
       new ApiResponse(404, { message: "Task not found" })
@@ -32,14 +34,15 @@ const getTaskById = asyncHandler(async (req, res) => {
 // create task
 const createTask = asyncHandler(async (req, res) => {
   // create task
-  const { title, description ,project , assignedTo , assignedBy , status , attachments } = req.body
-  if(!title || !project || !assignedTo || !assignedBy)
+  const { projectId } = req.params
+  const { title, description  , assignedTo , assignedBy , status , attachments } = req.body
+  if(!title || !projectId || !assignedTo || !assignedBy)
     return res.status(404).json(
         new ApiResponse(404,{message: "Required fields are missing "})
     )
 
     const task = await Task.create({
-        title, description ,project , assignedTo , assignedBy , status , attachments
+        title, description ,project:projectId , assignedTo , assignedBy , status , attachments
     }
     )
 
@@ -51,9 +54,9 @@ const createTask = asyncHandler(async (req, res) => {
 // update task
 const updateTask = asyncHandler(async (req, res) => {
   // update task
-  const { id } = req.params;
+  const { projectId,taskId } = req.params;
   const { title , description , status , attachments} = req.body;
-  const task = await Task.findById(id)
+  const task = await Task.findOne({_id :taskId , project:projectId})
   if(!task)
     return res.status(404).json(
         new ApiResponse(404,{message:"Task not found"})
@@ -73,13 +76,13 @@ const updateTask = asyncHandler(async (req, res) => {
 // delete task
 const deleteTask =asyncHandler( async (req, res) => {
   // delete task
-  const { id } = req.params;
-  const task = await Task.findById(id);
+  const { projectId , taskId } = req.params;
+  const task = await Task.findOne({project : projectId,_id : taskId});
   if(!task)
     return res.status(404).json(
             new ApiResponse(404,{message:"Task not found"})
         )
-  await SubTask.deleteMany({ task: id }); // Also delete all related subtasks
+  await SubTask.deleteMany({ task: taskId }); // Also delete all related subtasks
   await Task.findByIdAndDelete(id);
 
   res.status(200).json(
@@ -90,15 +93,16 @@ const deleteTask =asyncHandler( async (req, res) => {
 // create subtask
 const createSubTask = asyncHandler(async (req, res) => {
   // create subtask
-   const { title , task , createdBy } = req.body;
-   if(!title || !task || !createdBy)
+   const { projectId, taskId} = req.params
+   const { title , createdBy } = req.body;
+   if(!title  || !createdBy)
    {
     return res.status(404).json(
         new ApiResponse(404,{message:"Required fields are missing"})
     )
    }
    const subTask = await SubTask.create({
-    title , task , createdBy
+    title , task:taskId , createdBy
    })
    res.status(200).json(
     new ApiResponse(200,{subTask , message:"Subtask created successfully"})
@@ -108,9 +112,9 @@ const createSubTask = asyncHandler(async (req, res) => {
 // update subtask
 const updateSubTask = asyncHandler(async (req, res) => {
   // update subtask
-  const { id } =req.params;
+  const { projectId ,taskId , subTaskId } =req.params;
   const { title , isCompleted} =req.body;
-  const subTask = await SubTask.findById(id);
+  const subTask = await SubTask.findById(subTaskId);
   if(!subTask)
     return res.status(404).json(
         new ApiResponse(404,{message:"subtask not found"})
@@ -128,13 +132,13 @@ const updateSubTask = asyncHandler(async (req, res) => {
 // delete subtask
 const deleteSubTask =asyncHandler( async (req, res) => {
   // delete subtask
-    const { id } = req.params;
-  const subTask = await SubTask.findById(id);
+    const { projectId , taskId , subTaskId } = req.params;
+  const subTask = await SubTask.findById(subTaskId);
   if(!subTask)
     return res.status(404).json(
             new ApiResponse(404,{message:"Subtask not found"})
         )
-  await SubTask.findByIdAndDelete(id ); // Also delete all related subtasks
+  await SubTask.findByIdAndDelete(subTaskId ); // Also delete all related subtasks
   
   res.status(200).json(
         new ApiResponse(200,{message: "Subtask deleted successfully"})
